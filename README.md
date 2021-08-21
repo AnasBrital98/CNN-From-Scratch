@@ -211,13 +211,13 @@ The Output Of The Pooling Layer Can be calculated Using This Formula :
 #### Max Pooling :
 
 <div align="center" >
-<img src="resources/maxPool.png" width="400" height="250">
+<img src="resources/MaxPool.png" width="400" height="250">
 </div>
 
 #### AVG Pooling :
 
 <div align="center" >
-<img src="resources/avgPool.png" width="400" height="250">
+<img src="resources/AvgPool.png" width="400" height="250">
 </div>
 
 ---
@@ -521,7 +521,10 @@ In This Repository i'll try to Implement All The Architectures cited Before Usin
 
 
 <img align="right" width="30%"  src="resources/Mnist.png">
+
 The MNIST DataSet contains 60,000 training images and 10,000 test images. The images are in black and white with 28x28 pixels.
+
+
 
 ---
 **References :**
@@ -530,4 +533,4 @@ The MNIST DataSet contains 60,000 training images and 10,000 test images. The im
 
 * [Illustrated: 10 CNN Architectures](https://towardsdatascience.com/illustrated-10-cnn-architectures-95d78ace614d).
 
-* [Multilayer perceptron] (https://en.wikipedia.org/wiki/Multilayer_perceptron).
+* [Multilayer perceptron](https://en.wikipedia.org/wiki/Multilayer_perceptron).
