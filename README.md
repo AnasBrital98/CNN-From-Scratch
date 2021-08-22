@@ -442,6 +442,12 @@ Flatten Layer : S = 1 , P = 0 , K = 120 , kernel_size = 5*5 .
 
 ```
 
+**Model Architecture :** 
+
+<div align="center" >
+<img src="resources/leNet5Architecture.PNG" width="400" height="250">
+</div>
+
 **keras :**
 
 ```python
@@ -571,6 +577,12 @@ if __name__ == "__main__":
 
 **Published in :** NeurIPS 2012 .
 
+**Model Architecture :** 
+
+<div align="center" >
+<img src="resources/AlexNetArchitecture.PNG" width="400" height="250">
+</div>
+
 **keras :**
 
 ```python
@@ -624,10 +636,71 @@ def AlexNet() :
 
 **Published in :** 2014 .
 
+**Model Architecture :** 
+
+<div align="center" >
+<img src="resources/VGG16.PNG" width="300" height="400">
+</div>
+
 **keras :**
 
 ```python
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv2D , MaxPool2D , Dense , Dropout , Flatten
+from tensorflow.keras.optimizers import Adam
 
+def VGG16() :
+    
+    model = Sequential()
+    
+    model.add(Conv2D(filters=64 , kernel_size=(3,3) , strides=1 , input_shape=(224,224,3) , activation='relu'))
+    
+    model.add(Conv2D(filters=64 , kernel_size=(3,3) , strides=1 , activation='relu'))
+    
+    model.add(MaxPool2D(pool_size=(2,2) , strides=2))
+
+    
+    model.add(Conv2D(filters=128 , kernel_size=(3,3) , strides=1 , activation='relu'))
+    
+    model.add(Conv2D(filters=128 , kernel_size=(3,3) , strides=1 , activation='relu'))
+    
+    model.add(MaxPool2D(pool_size=(2,2) , strides=2))
+     
+    
+    model.add(Conv2D(filters=256 , kernel_size=(3,3) , strides=1 , activation='relu'))
+    
+    model.add(Conv2D(filters=256 , kernel_size=(3,3) , strides=1 , activation='relu'))
+    
+    model.add(Conv2D(filters=256 , kernel_size=(3,3) , strides=1 , activation='relu'))
+    
+    model.add(MaxPool2D(pool_size=(2,2) , strides=2))
+        
+    
+    model.add(Conv2D(filters=512 , kernel_size=(3,3) , strides=1 , activation='relu'))
+    
+    model.add(Conv2D(filters=512 , kernel_size=(3,3) , strides=1 , activation='relu'))
+    
+    model.add(Conv2D(filters=512 , kernel_size=(3,3) , strides=1 , activation='relu'))
+    
+    model.add(MaxPool2D(pool_size=(2,2) , strides=2))
+        
+    
+    model.add(Conv2D(filters=512 , kernel_size=(3,3) , strides=1 , activation='relu'))
+    
+    model.add(Conv2D(filters=512 , kernel_size=(3,3) , strides=1 , activation='relu'))
+    
+    model.add(Conv2D(filters=512 , kernel_size=(3,3) , strides=1 , activation='relu'))
+    
+    model.add(MaxPool2D(pool_size=(2,2) , strides=2))
+    
+    
+    model.add(Dense(units=4096 , activation='relu'))    
+    
+    model.add(Dense(units=4096 , activation='relu'))
+    
+    model.add(Dense(units=1000 , activation='softmax'))
+    
+    return model
 ```
 
 **pyTorch :**
