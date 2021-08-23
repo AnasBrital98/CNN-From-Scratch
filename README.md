@@ -445,7 +445,7 @@ Flatten Layer : S = 1 , P = 0 , K = 120 , kernel_size = 5*5 .
 **Model Architecture :** 
 
 <div align="center" >
-<img src="resources/leNet5Architecture.PNG" width="400" height="250">
+<img src="resources/leNet5Architecture.PNG" width="200" height="400">
 </div>
 
 **keras :**
@@ -580,7 +580,7 @@ if __name__ == "__main__":
 **Model Architecture :** 
 
 <div align="center" >
-<img src="resources/AlexNetArchitecture.PNG" width="400" height="250">
+<img src="resources/AlexNetArchitecture.PNG" width="200" height="500">
 </div>
 
 **keras :**
@@ -639,7 +639,7 @@ def AlexNet() :
 **Model Architecture :** 
 
 <div align="center" >
-<img src="resources/VGG16.PNG" width="300" height="400">
+<img src="resources/VGG16.PNG" width="200" height="700">
 </div>
 
 **keras :**
@@ -708,7 +708,7 @@ def VGG16() :
 ```python
 
 ```
-### Inception-V1 :
+### Inception-V1 (GoogLeNet) :
 
 **Paper :** [Going Deeper with Convolutions](https://arxiv.org/pdf/1409.4842.pdf) .
 
@@ -716,9 +716,82 @@ def VGG16() :
 
 **Published in :** 2015 IEEE Conference on Computer Vision and Pattern Recognition (CVPR) .
 
+<div align="center" >
+<img src="resources/InceptionV1.png" width="200" height="700">
+</div>
+
 **keras :**
 
 ```python
+from keras.models import Model
+from keras.layers.merge import concatenate
+from keras.layers import Conv2D , MaxPool2D ,AveragePooling2D, Dense , Dropout , Flatten , Input , GlobalAveragePooling2D
+
+
+
+def InceptionBlock(previous_layer , nbr_f1 , nbr_f2_1 , nbr_f2_2 , nbr_f3_1 , nbr_f3_2 , nbr_f4) :
+    
+    #Path 1
+    path1 = Conv2D(filters=nbr_f1, kernel_size = (1,1), padding='same' , activation='relu')(previous_layer)
+    
+    #Path 2 
+    path2 = Conv2D(filters=nbr_f2_1, kernel_size = (1,1), padding='same' , activation='relu')(previous_layer)
+    path2 = Conv2D(filters=nbr_f2_2, kernel_size = (3,3), padding='same' , activation='relu')(path2)
+    
+    #Path 3
+    path3 = Conv2D(filters=nbr_f3_1, kernel_size = (1,1), padding='same' , activation='relu')(previous_layer)
+    path3 = Conv2D(filters=nbr_f3_1, kernel_size = (5,5), padding='same' , activation='relu')(path3)
+    
+    #Path 4
+    path4 = MaxPool2D(pool_size=(3,3) , strides=(1,1) , padding='same') (previous_layer)
+    path4 = Conv2D(filters=nbr_f4, kernel_size = (1,1), padding='same' , activation='relu')(path4)
+    
+    output_Layer = concatenate([path1 , path2 , path3 , path4], axis = -1)
+    
+    return output_Layer
+
+def InceptionV1():
+    input_layer = Input(shape = (224, 224, 3))
+    x1 = Conv2D(filters = 64, kernel_size = (7,7), strides=2 , padding='valid' , activation='relu' )(input_layer)
+    x1 = MaxPool2D(pool_size=(3,3) , strides=2 )(x1)
+    x1 = Conv2D(filters = 64, kernel_size = (1,1), strides=1 , padding='same' , activation='relu' )(x1)
+    x1 = Conv2D(filters = 192, kernel_size = (3,3), strides=1 , padding='same' , activation='relu' )(x1)
+    x1 = MaxPool2D(pool_size=(3,3) , strides=2 )(x1)
+    x1 = InceptionBlock(previous_layer=x1, nbr_f1=64, nbr_f2_1=96, nbr_f2_2=128, nbr_f3_1=16, nbr_f3_2=32, nbr_f4=32)
+    x1 = InceptionBlock(previous_layer=x1, nbr_f1=128, nbr_f2_1=128, nbr_f2_2=192, nbr_f3_1=32, nbr_f3_2=96, nbr_f4=64)
+    x1 = MaxPool2D(pool_size=(3,3) , strides=2 )(x1)
+    x1 = InceptionBlock(previous_layer=x1, nbr_f1=192, nbr_f2_1=96, nbr_f2_2=208, nbr_f3_1=16, nbr_f3_2=48, nbr_f4=64)
+    
+    x2 = AveragePooling2D(pool_size = (5,5), strides = 3)(x1)
+    x2 = Conv2D(filters = 128, kernel_size = (1,1), padding = 'same', activation = 'relu')(x2)
+    x2 = Flatten()(x2)
+    x2 = Dense(1024, activation = 'relu')(x2)
+    x2 = Dropout(0.7)(x2)
+    x2 = Dense(5, activation = 'softmax')(x2)
+    
+    x1 = InceptionBlock(previous_layer=x1, nbr_f1=160, nbr_f2_1=112, nbr_f2_2=224, nbr_f3_1=24, nbr_f3_2=64, nbr_f4=64)
+    x1 = InceptionBlock(previous_layer=x1, nbr_f1=128, nbr_f2_1=128, nbr_f2_2=256, nbr_f3_1=24, nbr_f3_2=64, nbr_f4=64)
+    x1 = InceptionBlock(previous_layer=x1, nbr_f1=112, nbr_f2_1=144, nbr_f2_2=288, nbr_f3_1=32, nbr_f3_2=64, nbr_f4=64)
+    
+    x3 = AveragePooling2D(pool_size = (5,5), strides = 3)(x1)
+    x3 = Conv2D(filters = 128, kernel_size = (1,1), padding = 'same', activation = 'relu')(x3)
+    x3 = Flatten()(x3)
+    x3 = Dense(1024, activation = 'relu')(x3)
+    x3 = Dropout(0.7)(x3)
+    x3 = Dense(5, activation = 'softmax')(x3)
+    
+    x1 = InceptionBlock(previous_layer=x1, nbr_f1=256, nbr_f2_1=160, nbr_f2_2=320, nbr_f3_1=32, nbr_f3_2=128, nbr_f4=128)
+    x1 = MaxPool2D(pool_size=(3,3) , strides=2)(x1)
+    x1 = InceptionBlock(previous_layer=x1, nbr_f1=256, nbr_f2_1=160, nbr_f2_2=320, nbr_f3_1=32, nbr_f3_2=128, nbr_f4=128)
+    x1 = InceptionBlock(previous_layer=x1, nbr_f1=384, nbr_f2_1=192, nbr_f2_2=384, nbr_f3_1=48, nbr_f3_2=128, nbr_f4=128)
+    
+    x1 = GlobalAveragePooling2D(name = 'GAPL')(x1)
+    x1 = Dropout(0.4)(x1)
+    x1 = Dense(units=1000, activation='relu')(x1)
+    x1 = Dense(units=1000, activation='softmax')(x1)
+    
+    model = Model(input_layer, [x1 , x2 , x3] , name='InceptionV1')
+    return model
 
 ```
 
