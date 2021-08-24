@@ -716,6 +716,7 @@ def VGG16() :
 
 **Published in :** 2015 IEEE Conference on Computer Vision and Pattern Recognition (CVPR) .
 
+**Model Architecture :** 
 <div align="center" >
 <img src="resources/InceptionV1.png" width="200" height="700">
 </div>
@@ -890,10 +891,106 @@ Authors : Christian Szegedy, Sergey Ioffe, Vincent Vanhoucke, Alex Alemi , Googl
 
 **Published in :** 2016 IEEE Conference on Computer Vision and Pattern Recognition (CVPR).
 
+**Model Architecture :** 
+<div align="center" >
+<img src="resources/ResNet50.png" width="400" height="700">
+</div>
+
+
 **keras :**
 
 ```python
+from keras.models import Model
+from keras.layers.merge import concatenate
+from keras.layers import Conv2D , MaxPool2D , Input ,AveragePooling2D, Dense , Dropout ,Activation, Flatten , BatchNormalization , ZeroPadding2D , MaxPooling2D
 
+
+
+def IdentityBlock(prev_Layer , filters):
+    f1 , f2 , f3 = filters
+
+    x = Conv2D(filters=f1, kernel_size = (1,1) , strides=(1,1), padding='valid')(prev_Layer)
+    x = BatchNormalization(axis=3)(x)
+    x = Activation(activation='relu')(x)
+    
+    x = Conv2D(filters=f2, kernel_size = (3,3) , strides=(1,1), padding='same')(x)
+    x = BatchNormalization(axis=3)(x)
+    x = Activation(activation='relu')(x)
+    
+    x = Conv2D(filters=f3, kernel_size = (1,1) , strides=(1,1), padding='valid')(x)
+    x = BatchNormalization(axis=3)(x)
+    x = Activation(activation='relu')(x)
+    
+    x = concatenate([ x, prev_Layer ], axis=-1)
+    x = Activation(activation='relu')(x)
+    return x   
+
+def ConvBlock(prev_Layer , filters , strides):
+    f1 , f2 , f3 = filters
+    
+    #Path 1
+    x = Conv2D(filters=f1, kernel_size = (1,1) ,padding='valid', strides=strides)(prev_Layer)
+    x = BatchNormalization(axis=3)(x)
+    x = Activation(activation='relu')(x)
+    
+    x = Conv2D(filters=f2, kernel_size = (3,3) , padding='same' , strides=(1 ,1))(x)
+    x = BatchNormalization(axis=3)(x)
+    x = Activation(activation='relu')(x)
+    
+    x = Conv2D(filters=f3, kernel_size = (1,1), padding='valid' , strides=(1 ,1))(x)
+    x = BatchNormalization(axis=3)(x)
+    x = Activation(activation='relu')(x)
+    
+    #Path 2
+    
+    x2 = Conv2D(filters=f3, kernel_size=(1,1), padding='valid' , strides=strides)(prev_Layer)
+    x2 = BatchNormalization(axis=3)(x2)
+    
+    x = concatenate([x , x2], axis=-1)
+    x = Activation(activation='relu')(x)
+    return x
+ 
+def ResNet50():
+    input_layer = Input(shape = (224, 224, 3))
+    #Stage 1
+    x = ZeroPadding2D((3, 3))(input_layer)
+    x = Conv2D(filters = 64, kernel_size = (7,7), strides=(2,2)) (x)
+    x = BatchNormalization(axis=3)(x)
+    x = Activation(activation='relu')(x)
+    x = MaxPool2D(pool_size=(3,3) , strides=(2,2))(x)
+    
+    #Stage 2
+    x = ConvBlock(prev_Layer=x, filters = [64 , 64 , 256], strides = 1)
+    x = IdentityBlock(prev_Layer=x, filters = [64,64,256])
+    x = IdentityBlock(prev_Layer=x, filters = [64,64,256])
+    
+    #Stage 3
+    x = ConvBlock(prev_Layer=x, filters = [128 , 128 , 512], strides = 2)
+    x = IdentityBlock(prev_Layer=x, filters = [128 , 128 , 512])
+    x = IdentityBlock(prev_Layer=x, filters = [128 , 128 , 512])
+    x = IdentityBlock(prev_Layer=x, filters = [128 , 128 , 512])
+
+    #Stage 4    
+    x = ConvBlock(prev_Layer=x, filters = [256 , 256 , 1024], strides = 2)    
+    x = IdentityBlock(prev_Layer=x, filters = [256 , 265 , 1024])
+    x = IdentityBlock(prev_Layer=x, filters = [256 , 265 , 1024])
+    x = IdentityBlock(prev_Layer=x, filters = [256 , 265 , 1024])
+    x = IdentityBlock(prev_Layer=x, filters = [256 , 265 , 1024])
+    x = IdentityBlock(prev_Layer=x, filters = [256 , 265 , 1024])
+    
+    #Stage 5
+    x = ConvBlock(prev_Layer=x, filters = [512 , 512 , 2048], strides = 2)
+    x = IdentityBlock(prev_Layer=x, filters = [512 , 512 , 2048])
+    x = IdentityBlock(prev_Layer=x, filters = [512 , 512 , 2048])
+    
+    #Stage 6
+    x = AveragePooling2D(pool_size=(7,7)) (x)
+    
+    x = Flatten()(x)
+    x = Dense(units=1000, activation='softmax')(x)
+    
+    model = Model(inputs=input_layer , outputs = x , name='ResNet50')
+    return model
 ```
 
 **pyTorch :**
