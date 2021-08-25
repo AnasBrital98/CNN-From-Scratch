@@ -1041,6 +1041,11 @@ Authors : Christian Szegedy, Sergey Ioffe, Vincent Vanhoucke, Alex Alemi , Googl
 
 **Published in :** 2017 IEEE Conference on Computer Vision and Pattern Recognition (CVPR).
 
+**Model Architecture :** 
+<div align="center" >
+<img src="resources/Xception.png" width="100" height="300">
+</div>
+
 **keras :**
 
 ```python
