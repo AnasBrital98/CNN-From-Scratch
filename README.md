@@ -812,7 +812,7 @@ def InceptionV1():
 
 **Model Architecture :** 
 <div align="center" >
-<img src="resources/InceptionV3.png" width="200" height="700">
+<img src="resources/InceptionV3.PNG" width="200" height="700">
 </div>
 
 **keras :**
@@ -1043,13 +1043,95 @@ Authors : Christian Szegedy, Sergey Ioffe, Vincent Vanhoucke, Alex Alemi , Googl
 
 **Model Architecture :** 
 <div align="center" >
-<img src="resources/Xception.png" width="100" height="300">
+<img src="resources/Xception.PNG" width="100" height="300">
 </div>
 
 **keras :**
 
 ```python
+from keras.models import Model
+from keras.layers.merge import concatenate
+from keras.layers import Conv2D , MaxPool2D , SeparableConv2D , Input , GlobalAveragePooling2D , Dense , Dropout ,Activation , BatchNormalization
 
+def conv_2d(prev_layer,nbr_filters , filter_size , strides , activation = False):
+    x = Conv2D(filters = nbr_filters, kernel_size = filter_size, strides=strides , padding='same')(prev_layer)
+    x = BatchNormalization(axis = 3) (x)
+    if activation :
+        x = Activation(activation = 'relu') (x)
+    return x    
+
+def sep_conv_2d(prev_layer,nbr_filters , filter_size , strides , activation = False):
+    x = SeparableConv2D(filters = nbr_filters, kernel_size = filter_size, strides=strides ,padding='same')(prev_layer)
+    x = BatchNormalization(axis = 3) (x)
+    if activation :
+        x = Activation(activation = 'relu') (x)
+    return x
+
+def ConvBlockA(prev_layer , nbr_filters, filter_size = (3,3), strides = (1,1)):
+    
+    branch1 = conv_2d(prev_layer = prev_layer,nbr_filters = nbr_filters, filter_size = (1,1), strides = (2,2))
+    
+    branch2 = sep_conv_2d(prev_layer = prev_layer, nbr_filters = nbr_filters, filter_size = filter_size, strides = strides , activation=True)
+    branch2 = sep_conv_2d(prev_layer = branch2, nbr_filters = nbr_filters, filter_size = filter_size, strides = strides )
+    branch2 = MaxPool2D(pool_size=(3,3) , strides=(2,2), padding='same') (branch2)
+    
+    output = concatenate([branch1 , branch2], axis = 3)
+    
+    return output
+
+def ConvBlockB(prev_layer ):
+    branch1 = prev_layer
+    
+    branch2 = sep_conv_2d(prev_layer = prev_layer, nbr_filters = 728, filter_size = (3,3), strides = (1,1) , activation=True)
+    branch2 = sep_conv_2d(prev_layer = branch2, nbr_filters = 728, filter_size = (3,3), strides = (1,1), activation=True)
+    branch2 = sep_conv_2d(prev_layer = branch2, nbr_filters = 728, filter_size = (3,3), strides = (1,1))
+    
+    output = concatenate([branch1 , branch2], axis = 3)
+    
+    return output
+
+def ConvBlockC(prev_layer ):
+    branch1 = conv_2d(prev_layer = prev_layer, nbr_filters = 1024, filter_size = (1,1), strides = (2,2))
+    
+    branch2 = sep_conv_2d(prev_layer, nbr_filters = 728, filter_size = (3,3), strides = (1,1) , activation = 'relu')    
+    branch2 = sep_conv_2d(prev_layer = branch2, nbr_filters = 1024, filter_size = (3,3), strides = (1,1))
+    branch2 = MaxPool2D(pool_size=(3,3) , strides=(2,2) , padding='same')(branch2)
+    
+    output = concatenate([branch1 , branch2], axis = 3)
+    output = sep_conv_2d(prev_layer = output, nbr_filters = 1536, filter_size = (3,3), strides = (1,1) , activation=True)
+    output = sep_conv_2d(prev_layer = output, nbr_filters = 2048, filter_size = (3,3), strides = (1,1) , activation=True)
+    return output
+
+def Xception():
+    
+    input_layer = Input(shape=(299 , 299 , 3))
+    
+    x = conv_2d(input_layer, nbr_filters = 32, filter_size = (3,3), strides = (2,2) , activation=True)
+    x = conv_2d(x, nbr_filters = 64, filter_size = (3,3), strides = (1,1) , activation=True)
+    
+    x = ConvBlockA(prev_layer = x, nbr_filters = 128)
+    x = ConvBlockA(prev_layer = x, nbr_filters = 256)
+    x = ConvBlockA(prev_layer = x, nbr_filters = 728)
+    
+    x = ConvBlockB(prev_layer=x)
+    x = ConvBlockB(prev_layer=x)
+    x = ConvBlockB(prev_layer=x)
+    x = ConvBlockB(prev_layer=x)
+    x = ConvBlockB(prev_layer=x)
+    x = ConvBlockB(prev_layer=x)
+    x = ConvBlockB(prev_layer=x)
+    x = ConvBlockB(prev_layer=x)
+    
+    x = ConvBlockC(prev_layer=x)
+
+    x = GlobalAveragePooling2D()(x)
+    x = Dense(units = 2048, activation='relu') (x)
+    x = Dropout(rate = 0.5) (x)
+    x = Dense(units = 1000, activation='softmax') (x)
+    
+    model = Model(inputs = input_layer, outputs = x , name = 'Xception')
+    
+    return model
 ```
 
 **pyTorch :**
