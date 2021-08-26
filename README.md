@@ -630,7 +630,7 @@ def AlexNet() :
 ```
 ### VGG-16 :
 
-**Paper :** Very Deep Convolutional Networks for Large-Scale Image Recognition
+**Paper :** [Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/pdf/1409.1556.pdf)
 
 **Authors :** Karen Simonyan, Andrew Zisserman. University of Oxford, UK.
 
@@ -639,7 +639,7 @@ def AlexNet() :
 **Model Architecture :** 
 
 <div align="center" >
-<img src="resources/VGG16.PNG" width="200" height="700">
+<img src="resources/VGG16.PNG" width="100" height="400">
 </div>
 
 **keras :**
@@ -708,6 +708,79 @@ def VGG16() :
 ```python
 
 ```
+### VGG-19 :
+
+**Paper :** [Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/pdf/1409.1556.pdf)
+
+**Authors :** Karen Simonyan, Andrew Zisserman Visual Geometry Group, Department of Engineering Science, University of Oxford . 
+
+**Published in :** 2014 .
+
+**Model Architecture :** 
+
+<div align="center" >
+<img src="resources/VGG19.PNG" width="100" height="400">
+</div>
+
+**Keras :**
+
+```python
+from keras.models import Model
+from keras.layers import Conv2D , MaxPool2D , Input , Flatten , Dense , Dropout  
+
+
+def VGG19():
+    input_layer = Input(shape=(224 , 224 , 3))
+    
+    #Block 1
+    x = Conv2D(filters = 64, kernel_size = (3,3), padding='same' , activation='relu') (input_layer)
+    x = Conv2D(filters = 64, kernel_size = (3,3), padding='same' , activation='relu') (x) 
+    x = MaxPool2D(pool_size=(2,2) , strides=(2,2) , padding='same') (x)
+    
+    #Block 2
+    x = Conv2D(filters = 128, kernel_size = (3,3), padding='same' , activation='relu') (x)
+    x = Conv2D(filters = 128, kernel_size = (3,3), padding='same' , activation='relu') (x) 
+    x = MaxPool2D(pool_size=(2,2) , strides=(2,2) , padding='same') (x)
+    
+    #Block 3
+    x = Conv2D(filters = 256, kernel_size = (3,3), padding='same' , activation='relu') (x)
+    x = Conv2D(filters = 256, kernel_size = (3,3), padding='same' , activation='relu') (x)
+    x = Conv2D(filters = 256, kernel_size = (3,3), padding='same' , activation='relu') (x)
+    x = Conv2D(filters = 256, kernel_size = (3,3), padding='same' , activation='relu') (x)
+    x = MaxPool2D(pool_size=(2,2) , strides=(2,2) , padding='same') (x)
+    
+    #Block 4
+    x = Conv2D(filters = 512, kernel_size = (3,3), padding='same' , activation='relu') (x)
+    x = Conv2D(filters = 512, kernel_size = (3,3), padding='same' , activation='relu') (x)
+    x = Conv2D(filters = 512, kernel_size = (3,3), padding='same' , activation='relu') (x)
+    x = Conv2D(filters = 512, kernel_size = (3,3), padding='same' , activation='relu') (x)
+    x = MaxPool2D(pool_size=(2,2) , strides=(2,2) , padding='same') (x)
+    
+    #Block 5
+    x = Conv2D(filters = 512, kernel_size = (3,3), padding='same' , activation='relu') (x)
+    x = Conv2D(filters = 512, kernel_size = (3,3), padding='same' , activation='relu') (x)
+    x = Conv2D(filters = 512, kernel_size = (3,3), padding='same' , activation='relu') (x)
+    x = Conv2D(filters = 512, kernel_size = (3,3), padding='same' , activation='relu') (x)
+    x = MaxPool2D(pool_size=(2,2) , strides=(2,2) , padding='same') (x)
+    
+    #Block 6
+    x = Flatten()(x)
+    x = Dense(units = 4096 , activation='relu') (x)
+    x = Dropout(rate = 0.2)(x)
+    x = Dense(units = 4096 , activation='relu') (x)
+    x = Dropout(rate = 0.2)(x)
+    x = Dense(units = 1000 , activation='softmax') (x)
+    
+    model = Model(inputs = input_layer , outputs = x , name = 'VGG-19')
+    return model
+```
+
+**pyTorch :**
+
+```python
+
+```
+
 ### Inception-V1 (GoogLeNet) :
 
 **Paper :** [Going Deeper with Convolutions](https://arxiv.org/pdf/1409.4842.pdf) .
@@ -804,7 +877,7 @@ def InceptionV1():
 
 ### Inception-V3 :
 
-**Paper :** [Rethinking the Inception Architecture for Computer Vision] (https://arxiv.org/pdf/1512.00567.pdf) .
+**Paper :** [Rethinking the Inception Architecture for Computer Vision](https://arxiv.org/pdf/1512.00567.pdf) .
 
 **Authors :** Christian Szegedy, Vincent Vanhoucke, Sergey Ioffe, Jonathon Shlens, Zbigniew Wojna. Google, University College London .
 
@@ -995,7 +1068,7 @@ def InceptionV3():
 
 ### Inception-V4 :
 
-**Paper :** [Inception-v4, Inception-ResNet and the Impact of Residual Connections on Learning] (https://arxiv.org/pdf/1602.07261.pdf).
+**Paper :** [Inception-v4, Inception-ResNet and the Impact of Residual Connections on Learning](https://arxiv.org/pdf/1602.07261.pdf).
 
 **Authors :** Christian Szegedy, Sergey Ioffe, Vincent Vanhoucke, Alex Alemi. Google.
 
@@ -1015,7 +1088,7 @@ def InceptionV3():
 
 ### Inception-ResNet-V2 :
 
-**Paper :** [Inception-v4, Inception-ResNet and the Impact of Residual Connections on Learning] (https://arxiv.org/pdf/1602.07261.pdf).
+**Paper :** [Inception-v4, Inception-ResNet and the Impact of Residual Connections on Learning](https://arxiv.org/pdf/1602.07261.pdf).
 
 Authors : Christian Szegedy, Sergey Ioffe, Vincent Vanhoucke, Alex Alemi , Google .
 
@@ -1035,7 +1108,7 @@ Authors : Christian Szegedy, Sergey Ioffe, Vincent Vanhoucke, Alex Alemi , Googl
 
 ### Xception :
 
-**Paper :** [Xception: Deep Learning with Depthwise Separable Convolutions] (https://arxiv.org/pdf/1610.02357.pdf).
+**Paper :** [Xception: Deep Learning with Depthwise Separable Convolutions](https://arxiv.org/pdf/1610.02357.pdf).
 
 **Authors :** François Chollet. Google.
 
@@ -1258,7 +1331,7 @@ def ResNet50():
 
 ### ResNext-50 :
 
-**Paper :** [Aggregated Residual Transformations for Deep Neural Networks] (https://arxiv.org/pdf/1611.05431.pdf).
+**Paper :** [Aggregated Residual Transformations for Deep Neural Networks](https://arxiv.org/pdf/1611.05431.pdf).
 
 **Authors :** Saining Xie, Ross Girshick, Piotr Dollár, Zhuowen Tu, Kaiming He. University of California San Diego, Facebook Research .
 
