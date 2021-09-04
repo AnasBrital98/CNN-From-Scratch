@@ -1490,6 +1490,111 @@ def InceptionV3():
 **pyTorch :**
 
 ```python
+import torch.nn as nn
+import torch
+import torch.nn.functional as F
+from torchsummary import summary
+
+class ConvolutionBlock(nn.Module):
+  def __init__(self , in_channels , out_channels , kernel_size , stride , padding):
+    super(ConvolutionBlock , self).__init__()
+    self.conv = nn.Conv2d(in_channels , out_channels , kernel_size , stride , padding)
+    self.batchNormalization = nn.BatchNorm2d(out_channels)
+    self.activation = nn.ReLU()
+  def forward(self , x):
+
+    out = self.conv(x)
+    out = self.batchNormalization(out)
+    out = self.activation(out)
+    return out
+
+class StemBlock(nn.Module):
+  def __init__(self):
+    super(StemBlock , self).__init__()
+
+    self.conv1 = ConvolutionBlock(3,32,3,2,0)
+    self.conv2 = ConvolutionBlock(32,32,3,1,0)
+    self.conv3 = ConvolutionBlock(32,64,3,1,1)
+    self.conv4 = ConvolutionBlock(64,80,3,1,0)
+    self.conv5 = ConvolutionBlock(80,192,3,1,0)
+    self.maxPool = nn.MaxPool2d(kernel_size=(3,3) , stride=(2,2))
+
+ def forward(self , x):
+
+   out = self.conv1(x)
+   out = self.conv2(out)
+   out = self.conv3(out)
+
+   out = self.maxPool(out)
+
+   out = self.conv4(out)
+   out = self.conv5(out)
+
+   out = self.maxPool(out)
+  
+   return out
+
+
+class InceptionBlock_A(nn.Module):
+  def __init__(self , in_channels):
+    super(InceptionBlock_A , self).__init__()
+
+    self.branch1 = nn.Sequential(
+        ConvolutionBlock(in_channels , 64 , 1 , 1 , 0),
+        ConvolutionBlock(64 , 96 , 3 , 1 , 1),
+        ConvolutionBlock(96 , 96 , 3 , 1 , 1)
+    )
+
+    self.branch2 = nn.Sequential(
+        ConvolutionBlock(in_channels , 48 , 1 , 1 , 0),
+        ConvolutionBlock(48 , 64 , 3 , 1 , 1)
+    )
+
+    self.branch3 = nn.Sequential(
+        nn.AvgPool2d(kernel_size=(3,3) , stride=1 , padding=0),
+        ConvolutionBlock(in_channels , 64 , 1 , 1 , 0)
+    )
+
+    self.branch4 = ConvolutionBlock(in_channels , 64 , 1 , 1 , 0)
+
+  def forward(self , x):
+
+    branch1 = self.branch1(x)
+    branch2 = self.branch2(x)
+    branch3 = self.branch3(x)
+    branch4 = self.branch4(x)
+
+    out = torch.cat([branch1 , branch2  branch3 , branch4] , 1)   
+
+    return out
+
+
+class ReductionBlock_A(nn.Module):
+  def __init__(self , in_channels):
+
+    super(ReductionBlock_A , self).__init__()
+
+    self.branch1 = nn.Sequential(
+        ConvolutionBlock(in_channels , 64 , 1 , 1 , 0),
+        ConvolutionBlock(64 , 96 , 3 , 1 , 1),
+        ConvolutionBlock(96 , 96 , 3 , 2 , 0)
+    )
+
+    self.branch2 = ConvolutionBlock(in_channels , 384 , 3 , 1 , 0)
+
+    self.branch3 = nn.MaxPool2d(kernel_size=(3,3) , stride=2 , padding=0)
+
+ def forward(self , x):
+
+   branch1 = self.branch1(x)
+   branch2 = self.branch2(x)
+   branch3 = self.branch3(x)
+
+   out = torch.cat([branch1 , branch2 , branch3] , 1)
+      
+
+
+
 
 ```
 
