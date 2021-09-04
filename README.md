@@ -1146,19 +1146,20 @@ def InceptionV1():
 import torch.nn as nn
 import torch
 import torch.nn.functional as F
+from torchsummary import summary
 
 class Stem(nn.Module):
   def __init__(self):
     super(Stem , self).__init__()
-    self.conv1 = nn.Conv2d(in_channels= 3 , out_channels= 64 ,kernel_size=(7,7) , stride= (2,2))
-    self.conv2 = nn.Conv2d(in_channels= 64 , out_channels= 64 ,kernel_size=(1,1) , stride= (1,1))
-    self.conv3 = nn.Conv2d(in_channels= 64 , out_channels= 192 ,kernel_size=(3,3) , stride= (1,1))
-    self.maxPool = nn.MaxPool2d(kernel_size=(3,3) , stride=(2,2))
+    self.conv1 = nn.Conv2d(in_channels= 3 , out_channels= 64 ,kernel_size=(7,7) , stride= (2,2) , padding=(3,3))
+    self.conv2 = nn.Conv2d(in_channels= 64 , out_channels= 64 ,kernel_size=(1,1) , stride= (1,1), padding=0)
+    self.conv3 = nn.Conv2d(in_channels= 64 , out_channels= 192 ,kernel_size=(3,3) , stride= (1,1), padding=(1,1))
+    self.maxPool = nn.MaxPool2d(kernel_size=(3,3) , stride=(2,2) , padding=1)
   
   def forward(self , x):
     out = self.conv1(x)
     out = F.relu(out)
-    
+
     out = self.maxPool(out)
     
     out = self.conv2(out)
@@ -1168,7 +1169,7 @@ class Stem(nn.Module):
     out = F.relu(out)
     
     out = self.maxPool(out)
-
+    
     return out
 
 class InceptionBlock(nn.Module):
@@ -1177,28 +1178,28 @@ class InceptionBlock(nn.Module):
     k_1 , k_2_1 , k_2_2 , k_3_1 , k_3_2 , k_4 = nbr_kernels
 
     self.branch1 = nn.Sequential(
-        nn.Conv2d(in_channels = nbr_channels , out_channels= k_1 , kernel_size=(1,1)),
+        nn.Conv2d(in_channels = nbr_channels , out_channels= k_1 , kernel_size=(1,1) , stride=(1,1)),
         nn.ReLU()
     )
 
     self.branch2 = nn.Sequential(
-        nn.Conv2d(in_channels= nbr_channels , out_channels= k_2_1 , kernel_size= (1,1)),
+        nn.Conv2d(in_channels= nbr_channels , out_channels= k_2_1 , kernel_size= (1,1), stride=(1,1)),
         nn.ReLU(),
-        nn.Conv2d(in_channels= k_2_1 , out_channels= k_2_2 , kernel_size= (3,3) , padding=(1,1)),
+        nn.Conv2d(in_channels= k_2_1 , out_channels= k_2_2 , kernel_size= (3,3) , stride=(1,1) , padding=(1,1)),
         nn.ReLU()
     )
 
     self.branch3 = nn.Sequential(
-        nn.Conv2d(in_channels= nbr_channels , out_channels= k_3_1 , kernel_size= (1,1)),
+        nn.Conv2d(in_channels= nbr_channels , out_channels= k_3_1 , kernel_size= (1,1) , stride=(1,1)),
         nn.ReLU(),
-        nn.Conv2d(in_channels= k_3_1 , out_channels= k_3_2 , kernel_size= (5,5), padding=(1,1)),
+        nn.Conv2d(in_channels= k_3_1 , out_channels= k_3_2 , kernel_size= (5,5),  stride=(1,1) , padding = (2,2)),
         nn.ReLU()
     )
 
     self.branch4 = nn.Sequential(
-        nn.MaxPool2d(kernel_size=(3,3) , stride=(1,1)),
-        nn.Conv2d(in_channels= nbr_channels , out_channels= k_4 , kernel_size= (1,1), padding=(1,1)),
-        nn.ReLU(True)
+        nn.MaxPool2d(kernel_size=(3,3) , stride=(1,1) , padding=(1,1)),
+        nn.Conv2d(in_channels= nbr_channels , out_channels= k_4 , kernel_size= (1,1), stride=(1,1)),
+        nn.ReLU()
     )
 
   def forward(self , x):
@@ -1206,7 +1207,7 @@ class InceptionBlock(nn.Module):
     out2 = self.branch2(x)
     out3 = self.branch3(x)
     out4 = self.branch4(x)
-
+    
     return torch.cat([out1 ,out2 , out3 , out4] , 1)    
 
 class GoogleNet(nn.Module):
@@ -1240,7 +1241,7 @@ class GoogleNet(nn.Module):
     # Output Size : 7*7*1024
     self.Inception5_2 = InceptionBlock(832,[384 , 192 , 384 , 48 , 128 , 128])
 
-    self.maxPool = nn.MaxPool2d(kernel_size=(3,3) , stride=(2,2))
+    self.maxPool = nn.MaxPool2d(kernel_size=(3,3) , stride=(2,2) , padding=1)
     self.avgPool = nn.AvgPool2d(kernel_size=(7,7) , stride=(1,1))
 
     self.fc1 = nn.Linear(in_features=1024 , out_features =1000 )
@@ -1250,17 +1251,17 @@ class GoogleNet(nn.Module):
         nn.AvgPool2d(kernel_size=(5,5) , stride=(3,3)),
         nn.Conv2d(in_channels=512 , out_channels=128 , kernel_size=(1,1) , stride=(1,1)),
         nn.ReLU(),
-        nn.Linear(in_features = 8192, out_features=1024), #Missing This
+        nn.Linear(in_features = 4, out_features=1024), #Missing This
         nn.ReLU(),
         nn.Linear(in_features=1024 , out_features=1000),
         nn.Softmax()
     )
 
     self.auxiliary_classifier_2 = nn.Sequential(
-        nn.AvgPool2d(kernel_size=(5,5) , stride=(3,3)),
-        nn.Conv2d(in_channels=512 , out_channels=128 , kernel_size=(1,1) , stride=(1,1)),
+        nn.AvgPool2d(kernel_size=(5,5) , stride=(3,3) , padding = (1,1)),
+        nn.Conv2d(in_channels=528 , out_channels=128 , kernel_size=(1,1) , stride=(1,1)),
         nn.ReLU(),
-        nn.Linear(in_features = 8192, out_features=1024), #Missing This
+        nn.Linear(in_features = 4, out_features=1024), #Missing This
         nn.ReLU(),
         nn.Linear(in_features=1024 , out_features=1000),
         nn.Softmax()
@@ -1269,7 +1270,7 @@ class GoogleNet(nn.Module):
   def forward(self , x):
 
     out = self.stem(x)
-
+    
     out = self.Inception1_1(out)
     out = self.Inception1_2(out)
 
@@ -1278,31 +1279,29 @@ class GoogleNet(nn.Module):
     out = self.Inception2(out)
 
     aux1 = self.auxiliary_classifier_1(out)
-
+    
     out = self.Inception3_1(out)
     out = self.Inception3_2(out)
     out = self.Inception3_3(out)
 
     aux2 = self.auxiliary_classifier_2(out)
-
+    
     out = self.Inception4(out)
 
     out = self.maxPool(out)
 
     out = self.Inception5_1(out)
     out = self.Inception5_2(out)
-
+    
     out = self.avgPool(out)
 
     out = out.reshape(out.shape[0] , -1)
-
+    
     out = self.fc1(out)
     out = F.relu(out)
-    out = nn.Dropout(p=0.4)
+    out = nn.Dropout(p=0.4)(out)
     out = self.fc2(out)
-    out = self.Softmax(out)
-
-    out = torch.cat([out , aux1 , aux2] , 0)
+    out = F.softmax(out)
 
     return out
 ```
