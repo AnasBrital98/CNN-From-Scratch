@@ -1501,6 +1501,7 @@ class ConvolutionBlock(nn.Module):
     self.conv = nn.Conv2d(in_channels , out_channels , kernel_size , stride , padding)
     self.batchNormalization = nn.BatchNorm2d(out_channels)
     self.activation = nn.ReLU()
+  
   def forward(self , x):
     out = self.conv(x)
     out = self.batchNormalization(out)
@@ -1515,7 +1516,7 @@ class StemBlock(nn.Module):
     self.conv2 = ConvolutionBlock(32,32,3,1,0)
     self.conv3 = ConvolutionBlock(32,64,3,1,1)
     self.conv4 = ConvolutionBlock(64,80,3,1,0)
-    self.conv5 = ConvolutionBlock(80,192,3,1,0)
+    self.conv5 = ConvolutionBlock(80,192,3,1,1)
     self.maxPool = nn.MaxPool2d(kernel_size=(3,3) , stride=(2,2))
 
   def forward(self , x):
@@ -1530,6 +1531,7 @@ class StemBlock(nn.Module):
    out = self.conv5(out)
 
    out = self.maxPool(out)
+   
   
    return out
 
@@ -1550,8 +1552,8 @@ class InceptionBlock_A(nn.Module):
     )
 
     self.branch3 = nn.Sequential(
-        nn.AvgPool2d(kernel_size=(3,3) , stride=1 , padding=0),
-        ConvolutionBlock(in_channels , nbr_kernels , 1 , 1 , 0)
+        nn.AvgPool2d(kernel_size=(3,3) , stride=1 , padding=1),
+        ConvolutionBlock(in_channels , 64 , 1 , 1 , 0)
     )
 
     self.branch4 = ConvolutionBlock(in_channels , 64 , 1 , 1 , 0)
@@ -1616,17 +1618,17 @@ class InceptionBlock_C(nn.Module):
 
     self.branch3 = ConvolutionBlock(in_channels , 384 , 1 , 1 , 0)
 
-    branch3_1 = ConvolutionBlock(384 , 384 , (1,3) , 1 , (0,1))
+    self.branch3_1 = ConvolutionBlock(384 , 384 , (1,3) , 1 , (0,1))
 
-    branch3_2 = ConvolutionBlock(384 , 384 , (3,1) , 1 , (1,0))    
+    self.branch3_2 = ConvolutionBlock(384 , 384 , (3,1) , 1 , (1,0))    
 
     self.branch4 = nn.Sequential(
-        ConvolutionBlock(in_channels , 448 , 1 , 1 , 1),
-        ConvolutionBlock(448 , 384 , 3 , 1 , 0)
+        ConvolutionBlock(in_channels , 448 , 1 , 1 , 0),
+        ConvolutionBlock(448 , 384 , 3 , 1 , 1)
     )
 
-    branch4_1 = ConvolutionBlock(384 , 384 , (3,1) , 1 , (0,1))
-    branch4_2 = ConvolutionBlock(384 , 384 , (1,3) , 1 , (1,0))
+    self.branch4_1 = ConvolutionBlock(384 , 384 , (1,3) , 1 , (0,1))
+    self.branch4_2 = ConvolutionBlock(384 , 384 , (3,1) , 1 , (1,0))
  
   def forward(self , x):
 
@@ -1635,11 +1637,16 @@ class InceptionBlock_C(nn.Module):
    branch2 = self.branch2(x)
 
    branch3 = self.branch3(x)
+   
    branch3 = torch.cat([self.branch3_1(branch3) , self.branch3_2(branch3)] , 1)
 
    branch4 = self.branch4(x)
-   branch4 = torch.cat([self.branch4_1(branch4) , self.branch4_2(branch4)] , 1)
 
+   branch4_1 = self.branch4_1(branch4)
+   branch4_2 = self.branch4_2(branch4)
+
+   branch4 = torch.cat([ branch4_1,branch4_2 ] , 1)
+   
    out = torch.cat([branch1 , branch2 , branch3 , branch4] , 1)
 
    return out
@@ -1656,7 +1663,7 @@ class ReductionBlock_A(nn.Module):
         ConvolutionBlock(96 , 96 , 3 , 2 , 0)
     )
 
-    self.branch2 = ConvolutionBlock(in_channels , 384 , 3 , 1 , 0)
+    self.branch2 = ConvolutionBlock(in_channels , 384 , 3 , 2 , 0)
 
     self.branch3 = nn.MaxPool2d(kernel_size=(3,3) , stride=2 , padding=0)
 
@@ -1665,7 +1672,7 @@ class ReductionBlock_A(nn.Module):
    branch1 = self.branch1(x)
    branch2 = self.branch2(x)
    branch3 = self.branch3(x)
-
+   
    out = torch.cat([branch1 , branch2 , branch3] , 1)
 
    return out
@@ -1683,7 +1690,7 @@ class ReductionBlock_B(nn.Module):
     )   
 
     self.branch2 = nn.Sequential(
-        ConvolutionBlock(in_channels , 192 , 1 , 2 , 0),
+        ConvolutionBlock(in_channels , 192 , 1 , 1 , 0),
         ConvolutionBlock(192 , 320 , 3 , 2 , 0)
     )
 
@@ -1695,7 +1702,7 @@ class ReductionBlock_B(nn.Module):
     branch2 = self.branch2(x)
     branch3 = self.branch3(x)
 
-    out = torch.cat([barnch1 , branch2 , branch3] , 1)
+    out = torch.cat([branch1 , branch2 , branch3] , 1)
 
     return out
 
@@ -1721,10 +1728,10 @@ class Aux_Block(nn.Module):
     out = torch.flatten(out , 1)
 
     out = self.fc1(out)
-    out = nn.ReLU(out)
+    out = nn.ReLU()(out)
 
     out = self.fc2(out)
-    out = nn.Softmax(out)
+    out = nn.Softmax()(out)
 
     return out
 
@@ -1735,7 +1742,7 @@ class InceptionV3(nn.Module):
     super(InceptionV3 , self).__init__()
     self.stem = StemBlock()
 
-    self.inceptionA_1 = InceptionBlock_A(288 , 32)
+    self.inceptionA_1 = InceptionBlock_A(192 , 32)
     self.inceptionA_2 = InceptionBlock_A(288 , 64)
     self.inceptionA_3 = InceptionBlock_A(288 , 64)
 
@@ -1760,18 +1767,18 @@ class InceptionV3(nn.Module):
   def forward(self , x):
     
     out = self.stem(x)
-
+    
     out = self.inceptionA_1(out)
     out = self.inceptionA_2(out)
     out = self.inceptionA_3(out)
-
+    
     out = self.reductionA(out)
-
+    
     out = self.inceptionB_1(out)
     out = self.inceptionB_2(out)
     out = self.inceptionB_3(out)
     out = self.inceptionB_4(out)
-
+    
     aux = self.aux(out)
 
     out = self.reductionB(out)
@@ -1779,13 +1786,14 @@ class InceptionV3(nn.Module):
     out = self.inceptionC_1(out)
     out = self.inceptionC_2(out)
 
-    out = self.avgPool(out)
-    
+    out = self.avgpool(out)
+    out = out.reshape(out.shape[0] , -1)
+
     out = self.fc1(out)
-    out = nn.ReLU(out)
+    out = nn.ReLU()(out)
 
     out = self.fc2(out)
-    out = nn.Softmax(out)
+    out = nn.Softmax()(out)
 
     return out , aux    
 ```
@@ -1802,6 +1810,8 @@ class InceptionV3(nn.Module):
 **keras :**
 
 ```python
+
+#Not Complitted Yet
 from keras.models import Model
 from keras.layers.merge import concatenate
 from keras.layers import Conv2D , MaxPool2D , Input , GlobalAveragePooling2D ,AveragePooling2D, Dense , Dropout ,Activation , BatchNormalization
