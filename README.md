@@ -1981,7 +1981,101 @@ def InceptionV4():
 **pyTorch :**
 
 ```python
+import torch.nn as nn
+import torch
+import torch.nn.functional as F
+from torchsummary import summary
 
+class conv_Block(nn.Module):
+  def __init__(self, in_channels , out_channels , kernel_size , stride , padding):
+    super(conv_Block , self).__init__()
+    self.conv = nn.Conv2d(in_channels , out_channels , kernel_size , stride , padding)
+    self.batchNormalization = nn.BatchNorm2d(out_channels)
+    self.activation = nn.ReLU()
+
+  def forward(self,x):
+    out = self.conv(x)
+    out = self.batchNormalization(out)
+    out = self.activation(out)
+    return out
+
+class Stem_Block(nn.Module):
+  def __init__(self , in_channels):
+    super(Stem_Block , self).__init__()
+    self.conv1 = conv_Block(in_channels , 32 , 3 , 2 , 0)
+    self.conv2 = conv_Block(32 , 32 , 3 , 1 , 0)
+    self.conv3 = conv_Block(32 , 64 , 3 , 1 , 1)
+
+    self.branch1 = conv_Block(64 , 96 , 3 , 2 , 0)
+    self.branch2 = nn.MaxPool2d(kernel_size=(3,3) , stride=2 , padding=0)
+
+    self.branch1_1 = nn.Sequential(
+        conv_Block(160 , 64 , 1 , 1 , 0),
+        conv_Block(64 , 64 , (1,7) , 1 , (0,3)),
+        conv_Block(64 , 64 , (7,1) , 1 , (3,0)),
+        conv_Block(64 , 96 , 3 , 1 , 0)
+    )
+
+    self.branch2_1 = nn.Sequential(
+        conv_Block(160 , 64 , 1 , 1 , 0),
+        conv_Block(64 , 96 , 3 , 1 , 0)
+    )
+
+    self.branch1_2 = conv_Block(192 , 192,3 , 2 , 0)
+
+    self.branch2_2 = nn.MaxPool2d(kernel_size=(3,3) , stride=2 , padding=0)
+
+
+  def forward(self , x):
+    out = self.conv1(x)
+    out = self.conv2(out)
+    out = self.conv3(out)
+
+    branch1 = self.branch1(out)
+    branch2 = self.branch2(out)
+
+    out = torch.cat([branch1 , branch2] , 1)
+
+    branch1 = self.branch1_1(out)
+    branch2 = self.branch2_1(out)
+
+    out = torch.cat([branch1 , branch2] , 1)  
+
+    branch1 = self.branch1_2(out)
+    branch2 = self.branch2_2(out)
+
+    out = torch.cat([branch1 , branch2] , 1)
+    return out
+
+class inception_Block_A(nn.Module):
+  def __init__(self , in_channels):
+    super(inception_Block_A , self).__init__()    
+    
+    self.branch1 = nn.Sequential(
+        conv_Block(in_channels , 64 , 1 , 1 , 0),
+        conv_Block(64 , 96 , 3 , 1 , 1),
+        conv_Block(96 , 96 , 3 , 1 , 1)
+    )
+    self.branch2 = nn.Sequential(
+        conv_Block(in_channels , 64 , 1 , 1 , 0),
+        conv_Block(64 , 96 , 3 , 1 , 1)
+    )
+    self.branch3 = nn.Sequential(
+        nn.MaxPool2d(kernel_size=(3,3) , stride=1 , padding=0),
+        conv_Block(in_channels , 96 , 1 ,1 ,0 )
+    )
+    self.branch4 = conv_Block(in_channels , 96 , 1 , 1 , 0)
+  def forward(self , x):
+
+    branch1 = self.branch1(x)
+    branch2 = self.branch2(x)
+    branch3 = self.branch3(x)
+    branch4 = self.branch4(x)
+
+    out = torch.cat([branch1 , branch2 , branch3 , branch4] , 1)
+    return out
+
+    
 ```
 
 ### Inception-ResNet-V2 :
