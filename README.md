@@ -1981,6 +1981,7 @@ def InceptionV4():
 **pyTorch :**
 
 ```python
+
 import torch.nn as nn
 import torch
 import torch.nn.functional as F
@@ -2072,9 +2073,205 @@ class inception_Block_A(nn.Module):
     branch3 = self.branch3(x)
     branch4 = self.branch4(x)
 
+    
+
     out = torch.cat([branch1 , branch2 , branch3 , branch4] , 1)
     return out
 
+class inception_Block_B(nn.Module):
+  def __init__(self , in_channels):
+    super(inception_Block_B , self).__init__()
+
+    self.branch1 = nn.Sequential(
+        conv_Block(in_channels , 192 , 1 , 1 , 0),
+        conv_Block(192 , 192 , (7,1) , 1 , (3,0)),
+        conv_Block(192 , 224 , (1,7) , 1 , (0,3)),
+        conv_Block(224 , 224 , (7,1) , 1 , (3,0)),
+        conv_Block(224 , 256 , (1,7) , 1 , (0,3)),
+    )
+
+    self.branch2 = nn.Sequential(
+        conv_Block(in_channels , 192 , 1 , 1 , 0),
+        conv_Block(192 , 224 , (1,7) , 1 , (0,3)),
+        conv_Block(224 , 256 , (7,1) , 1 , (3,0)),
+    )
+
+    self.branch3 = nn.Sequential(
+        nn.AvgPool2d(kernel_size=(3,3) , stride=1 , padding=1),
+        conv_Block(in_channels , 128 , 1 , 1 , 0)   
+    )
+
+    self.branch3 = conv_Block(in_channels , 384 , 1 , 1 , 0)
+
+  def forward(self , x):
+
+    branch1 = self.branch1(x)
+    branch2 = self.branch2(x)
+    branch3 = self.branch3(x)
+    branch4 = self.branch4(x)  
+
+    out = torch.cat([branch1 , branch2 , branch3 , branch4] , 1)
+
+    return out
+
+
+class inception_Block_C(nn.Module):
+  def __init__(self , in_channels):
+    super(inception_Block_C , self).__init__()
+
+    self.branch1 = nn.Sequential(
+        conv_Block(in_channels , 384 , 1 , 1 , 0),
+        conv_Block(384 , 448 , (3,1) , 1 , (1 , 0)),
+        conv_Block(448 , 512 , (1,3) , 1 , (0 , 1))
+    )  
+
+    self.branch1_1 = conv_Block(512 , 256 , (1,3) , 1 , (0,1))
+    self.branch1_2 = conv_Block(512 , 256 , (3,1) , 1 , (1,0))
+
+    self.branch2 = conv_Block(in_channels , 384 , 1 , 1 , 0)
+
+    self.branch2_1 = conv_Block(384 , 256 , (1,3) , 1 , (0,1))
+    self.branch2_2 = conv_Block(384 , 256 , (3,1) , 1 , (1,0))
+
+    self.branch3 = nn.Sequential(
+        nn.MaxPool2d(kernel_size=3 , stride=1 , padding=1),
+        conv_Block(in_channels , 256 , (1,3) , 1 , 0)
+    )
+
+    self.branch4 = conv_Block(in_channels , 256 , 1 , 1 , 0)
+
+  def forward(self , x):
+
+    branch1 = self.branch1(x)
+    branch1_1 = self.branch1_1(branch1)
+    branch1_2 = self.branch1_2(branch1)  
+    branch1 = torch.cat([branch1_1 , branch1_2] , 1)
+
+    branch2 = self.branch2(x)
+    branch2_1 = self.branch2_1(branch2)
+    branch2_2 = self.branch2_2(branch2)
+    branch2 = torch.cat([branch2_1 , branch2_2] , 1)
+
+    branch3 = self.branch3(x)
+
+    branch4 = self.branch4(x)
+
+    out = torch.cat([branch1 , branch2 , branch3 , branch4] , 1)
+
+    return out
+
+class reduction_Block_A(nn.Module):
+  def __init__(self , in_channels):
+    super(reduction_Block_A , self).__init__()
+
+    self.branch1 = nn.Sequential(
+        conv_Block(in_channels , 192 , 1 , 1 , 0),
+        conv_Block(192 , 224 , 3 , 1 , 1),
+        conv_Block(224 , 256 , 3 , 2 , 0)
+    )
+
+    self.branch2 = conv_Block(in_channels , 384 , 3 , 2 , 0)
+
+    self.branch3 = nn.MaxPool2d(kernel_size = 3 , stride=2 , padding=0 )
+
+  def forward(self , x):
+
+    branch1 = self.branch1(x)
+    branch2 = self.branch2(x)
+    branch3 = self.branch3(x)
+
+    out = torch.cat([branch1 ,branch2 , branch3 ] , 1)
+
+    return out
+
+class reduction_Block_B(nn.Module):
+  def __init__(self , in_channels):
+    super(reduction_Block_B , self).__init__()
+    
+    self.branch1 = nn.Sequential(
+        conv_Block(in_channels , 256 , 1 , 1 , 0),
+        conv_Block(256 , 256 , (1,7) , 1 , (0,3)),
+        conv_Block(256 , 320 , (7,1) , 1 , (3,0)),
+        conv_Block(320 , 320 , 3 , 2 , 0)  
+    )
+
+    self.branch2 = nn.Sequential(
+        conv_Block(in_channels , 192 , 1 , 1 , 0),
+        conv_Block(256 , 256 , 3 , 2 , 0)
+    )
+
+    self.branch3 = nn.MaxPool2d(kernel_size=3 , stride=2 , padding=0)
+
+  def forward(self , x):
+
+    branch1 = self.branch1(x)
+    branch2 = self.branch2(x)
+    branch3 = self.branch3(x)
+
+    out = torch.cat([branch1 , branch2 , branch3] , 1)
+
+    return out
+
+class InceptionV4(nn.Module):
+  def __init__(self):
+    super(InceptionV4 , self).__init__()
+
+    self.stem = Stem_Block(3)
+
+    self.inceptionA = inception_Block_A(384)
+
+    self.reductionA = reduction_Block_A(384)
+
+    self.inceptionB = inception_Block_B(1024)
+
+    self.reductionB = reduction_Block_B(1024)
+
+    self.inceptionC = inception_Block_C(1536)
+
+    self.fc1 = nn.Linear(in_features=1536 , out_features=1536)
+    self.fc2 = nn.Linear(in_features=1536 , out_features=1000)
+
+  def forward(self,x):
+
+    out = self.stem(x)
+    print('After Stem : ',out.shape)
+    out = self.inceptionA(out)
+    out = self.inceptionA(out)
+    out = self.inceptionA(out)
+    out = self.inceptionA(out)
+    print('After Inception A : ',out.shape)
+
+    out = self.reductionA(out)
+    print('After Reduction A : ',out.shape)
+
+
+    out = self.inceptionB(out)
+    out = self.inceptionB(out)
+    out = self.inceptionB(out)
+    out = self.inceptionB(out)
+    out = self.inceptionB(out)
+    out = self.inceptionB(out)
+    out = self.inceptionB(out)
+    print('After Inception B : ',out.shape)
+
+    out = self.reductionB(out)
+    print('After reduction B : ', out.shape)
+
+    out = self.inceptionC(out)
+    out = self.inceptionC(out)
+    out = self.inceptionC(out)
+    print('After Inception C : ',out.shape)
+    out = out.reshape(out.shape[0] , -1)
+
+    out = self.fc1(out)
+    out = nn.ReLU()(out)
+
+    out = self.fc2(out)
+    out = nn.Softmax()(out)
+    return out
+
+model = InceptionV4()
+summary(model , (3 , 299 , 299))
     
 ```
 
