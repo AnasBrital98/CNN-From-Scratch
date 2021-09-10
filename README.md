@@ -1985,7 +1985,6 @@ def InceptionV4():
 import torch.nn as nn
 import torch
 import torch.nn.functional as F
-from torchsummary import summary
 
 class conv_Block(nn.Module):
   def __init__(self, in_channels , out_channels , kernel_size , stride , padding):
@@ -2062,7 +2061,7 @@ class inception_Block_A(nn.Module):
         conv_Block(64 , 96 , 3 , 1 , 1)
     )
     self.branch3 = nn.Sequential(
-        nn.MaxPool2d(kernel_size=(3,3) , stride=1 , padding=0),
+        nn.MaxPool2d(kernel_size=(3,3) , stride=1 , padding=1),
         conv_Block(in_channels , 96 , 1 ,1 ,0 )
     )
     self.branch4 = conv_Block(in_channels , 96 , 1 , 1 , 0)
@@ -2072,8 +2071,6 @@ class inception_Block_A(nn.Module):
     branch2 = self.branch2(x)
     branch3 = self.branch3(x)
     branch4 = self.branch4(x)
-
-    
 
     out = torch.cat([branch1 , branch2 , branch3 , branch4] , 1)
     return out
@@ -2101,7 +2098,7 @@ class inception_Block_B(nn.Module):
         conv_Block(in_channels , 128 , 1 , 1 , 0)   
     )
 
-    self.branch3 = conv_Block(in_channels , 384 , 1 , 1 , 0)
+    self.branch4 = conv_Block(in_channels , 384 , 1 , 1 , 0)
 
   def forward(self , x):
 
@@ -2121,8 +2118,8 @@ class inception_Block_C(nn.Module):
 
     self.branch1 = nn.Sequential(
         conv_Block(in_channels , 384 , 1 , 1 , 0),
-        conv_Block(384 , 448 , (3,1) , 1 , (1 , 0)),
-        conv_Block(448 , 512 , (1,3) , 1 , (0 , 1))
+        conv_Block(384 , 448 , (3,1) , 1 , (1,0)),
+        conv_Block(448 , 512 , (1,3) , 1 , (0,1))
     )  
 
     self.branch1_1 = conv_Block(512 , 256 , (1,3) , 1 , (0,1))
@@ -2135,7 +2132,7 @@ class inception_Block_C(nn.Module):
 
     self.branch3 = nn.Sequential(
         nn.MaxPool2d(kernel_size=3 , stride=1 , padding=1),
-        conv_Block(in_channels , 256 , (1,3) , 1 , 0)
+        conv_Block(in_channels , 256 , 3 , 1 , 1)
     )
 
     self.branch4 = conv_Block(in_channels , 256 , 1 , 1 , 0)
@@ -2197,7 +2194,7 @@ class reduction_Block_B(nn.Module):
 
     self.branch2 = nn.Sequential(
         conv_Block(in_channels , 192 , 1 , 1 , 0),
-        conv_Block(256 , 256 , 3 , 2 , 0)
+        conv_Block(192 , 192 , 3 , 2 , 0)
     )
 
     self.branch3 = nn.MaxPool2d(kernel_size=3 , stride=2 , padding=0)
@@ -2230,21 +2227,20 @@ class InceptionV4(nn.Module):
 
     self.fc1 = nn.Linear(in_features=1536 , out_features=1536)
     self.fc2 = nn.Linear(in_features=1536 , out_features=1000)
+    self.globalAvgPool = conv_Block(1536 , 1536 , 8 , 1 , 0)
 
   def forward(self,x):
 
     out = self.stem(x)
-    print('After Stem : ',out.shape)
+    
     out = self.inceptionA(out)
     out = self.inceptionA(out)
     out = self.inceptionA(out)
     out = self.inceptionA(out)
-    print('After Inception A : ',out.shape)
-
+    
     out = self.reductionA(out)
-    print('After Reduction A : ',out.shape)
+    
 
-
     out = self.inceptionB(out)
     out = self.inceptionB(out)
     out = self.inceptionB(out)
@@ -2252,15 +2248,15 @@ class InceptionV4(nn.Module):
     out = self.inceptionB(out)
     out = self.inceptionB(out)
     out = self.inceptionB(out)
-    print('After Inception B : ',out.shape)
-
+    
     out = self.reductionB(out)
-    print('After reduction B : ', out.shape)
-
+    
     out = self.inceptionC(out)
     out = self.inceptionC(out)
     out = self.inceptionC(out)
-    print('After Inception C : ',out.shape)
+    
+    out = self.globalAvgPool(out)
+    
     out = out.reshape(out.shape[0] , -1)
 
     out = self.fc1(out)
@@ -2269,9 +2265,6 @@ class InceptionV4(nn.Module):
     out = self.fc2(out)
     out = nn.Softmax()(out)
     return out
-
-model = InceptionV4()
-summary(model , (3 , 299 , 299))
     
 ```
 
