@@ -2279,7 +2279,45 @@ Authors : Christian Szegedy, Sergey Ioffe, Vincent Vanhoucke, Alex Alemi , Googl
 **keras :**
 
 ```python
+from keras.models import Model
+from keras.layers.merge import concatenate
+from keras.layers import Conv2D , MaxPool2D , Input , GlobalAveragePooling2D ,AveragePooling2D, Dense , Dropout ,Activation, Flatten , BatchNormalization
 
+def conv_Block(prev_layer , nbr_kernels , filter_size , stride = (1,1) , padding = 'valid'):
+  x = Conv2D(filters = nbr_kernels , kernel_size = filter_size , strides = stride , padding=padding) (prev_layer)
+  x = BatchNormalization(axis = 3) (x)
+  x = Activation(activation='relu') (x)
+  return x
+
+def StemBlock(prev_layer):
+  x = conv_Block(prev_layer = prev_layer , nbr_kernels = 32 ,filter_size = 3 ,stride = 2)
+  x = conv_Block(prev_layer = x , nbr_kernels = 32 ,filter_size = 3 )
+  x = conv_Block(prev_layer = x , nbr_kernels = 32 ,filter_size = 3 , padding='same')
+  x = MaxPool2D(kernel_size = (3,3) , strides=2) (x)
+  x = conv_Block(prev_layer = x , nbr_kernels = 80 ,filter_size = 1)
+  x = conv_Block(prev_layer = x , nbr_kernels = 192 ,filter_size = 3)
+  x = MaxPool2D(kernel_size = (3,3) , strides=2) (x)
+  return x
+
+def InceptionBlock(prev_layer):
+  branch1 = conv_Block(prev_layer = prev_layer , nbr_kernels = 64 , filter_size = 1)
+  branch1 = conv_Block(prev_layer = branch1 , nbr_kernels = 64 , filter_size = 3 , padding='same')
+  branch1 = conv_Block(prev_layer = branch1 , nbr_kernels = 96 , filter_size = 3 , padding='same')
+
+  branch2 = conv_Block(prev_layer = prev_layer , nbr_kernels = 48 , filter_size = 1)
+  branch2 = conv_Block(prev_layer = branch2 , nbr_kernels = 64 , filter_size = 5 , padding='same')
+
+  branch3 = conv_Block(prev_layer = prev_layer , nbr_kernels = 96 , filter_size = 1)
+
+  branch4 = MaxPool2D(kernel_size = 3 , strides=1 , padding='same') (prev_layer)
+
+  out = concatenate([branch1 , branch2 , branch3 , branch4] , axis=3)
+  return out
+
+
+
+
+  ###### Not Complited Yet
 ```
 
 **pyTorch :**
