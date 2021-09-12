@@ -2293,10 +2293,10 @@ def StemBlock(prev_layer):
   x = conv_Block(prev_layer = prev_layer , nbr_kernels = 32 ,filter_size = 3 ,stride = 2)
   x = conv_Block(prev_layer = x , nbr_kernels = 32 ,filter_size = 3 )
   x = conv_Block(prev_layer = x , nbr_kernels = 32 ,filter_size = 3 , padding='same')
-  x = MaxPool2D(kernel_size = (3,3) , strides=2) (x)
+  x = MaxPool2D(pool_size = 3 , strides=2) (x)
   x = conv_Block(prev_layer = x , nbr_kernels = 80 ,filter_size = 1)
   x = conv_Block(prev_layer = x , nbr_kernels = 192 ,filter_size = 3)
-  x = MaxPool2D(kernel_size = (3,3) , strides=2) (x)
+  x = MaxPool2D(pool_size = (3,3) , strides=2) (x)
   return x
 
 def InceptionBlock(prev_layer):
@@ -2309,15 +2309,153 @@ def InceptionBlock(prev_layer):
 
   branch3 = conv_Block(prev_layer = prev_layer , nbr_kernels = 96 , filter_size = 1)
 
-  branch4 = MaxPool2D(kernel_size = 3 , strides=1 , padding='same') (prev_layer)
+  branch4 = MaxPool2D(pool_size = 3 , strides=1 , padding='same') (prev_layer)
+  branch4 = conv_Block(prev_layer = branch4 , nbr_kernels = 64 , filter_size = 1)
 
   out = concatenate([branch1 , branch2 , branch3 , branch4] , axis=3)
   return out
 
 
+def InceptionResNet_A(prev_layer):
+  branch1 = conv_Block(prev_layer = prev_layer , nbr_kernels = 32 , filter_size=1 )
+  branch1 = conv_Block(prev_layer = branch1 , nbr_kernels = 48 , filter_size=3 , padding='same')
+  branch1 = conv_Block(prev_layer = branch1 , nbr_kernels = 64 , filter_size=3 , padding='same')
+
+  branch2 = conv_Block(prev_layer = prev_layer , nbr_kernels = 32 , filter_size=1 )
+  branch2 = conv_Block(prev_layer = branch2 , nbr_kernels = 32 , filter_size=3 , padding='same' )
+
+  branch3 = conv_Block(prev_layer = prev_layer , nbr_kernels = 32 , filter_size=1 )
+  
+  out = concatenate([branch1 , branch2 , branch3] , axis = 3)
+
+  out = conv_Block(prev_layer = out , nbr_kernels = 320 , filter_size=1 )
+
+  out += prev_layer
+  return out
+
+def InceptionResNet_B(prev_layer):
+  branch1 = conv_Block(prev_layer = prev_layer , nbr_kernels = 128 , filter_size=1 )
+  branch1 = conv_Block(prev_layer = branch1 , nbr_kernels = 160 , filter_size=(1,7) , padding='same' )
+  branch1 = conv_Block(prev_layer = branch1 , nbr_kernels = 192 , filter_size=(7,1) , padding='same' )
+
+  branch2 = conv_Block(prev_layer = prev_layer , nbr_kernels = 192 , filter_size=1 )
+
+  out = concatenate([branch1 , branch2] , axis = 3)
+
+  out = conv_Block(prev_layer = out , nbr_kernels = 1088 , filter_size=1 )
+
+  out += prev_layer
+  return out
+
+def InceptionResNet_C(prev_layer):
+  branch1 = conv_Block(prev_layer = prev_layer , nbr_kernels = 192 , filter_size=1 )
+  branch1 = conv_Block(prev_layer = branch1 , nbr_kernels = 224 , filter_size=(1,3) , padding = 'same' )
+  branch1 = conv_Block(prev_layer = branch1 , nbr_kernels = 256 , filter_size=(3,1) , padding = 'same' )
+
+  branch2 = conv_Block(prev_layer = prev_layer , nbr_kernels = 192 , filter_size=1 )
+
+  out = concatenate([branch1 , branch2] , axis = 3)
+
+  out = conv_Block(prev_layer = out , nbr_kernels = 2080 , filter_size=1 )
+
+  out += prev_layer
+
+  return out
 
 
-  ###### Not Complited Yet
+def Reduction_A(prev_layer):
+  branch1 = conv_Block(prev_layer = prev_layer , nbr_kernels = 256 , filter_size=1 )
+  branch1 = conv_Block(prev_layer = branch1 , nbr_kernels = 256 , filter_size=3 , padding='same')
+  branch1 = conv_Block(prev_layer = branch1 , nbr_kernels = 384 , filter_size=3 , stride=2 )
+
+  branch2 = conv_Block(prev_layer = prev_layer , nbr_kernels = 384 , filter_size=3 , stride=2 )
+
+  branch3 = MaxPool2D(pool_size = 3 , strides=2) (prev_layer)
+  
+  out = concatenate([branch1 , branch2 , branch3] , axis = 3)
+  return out
+
+def Reduction_B(prev_layer):
+  branch1 = conv_Block(prev_layer = prev_layer , nbr_kernels = 256 , filter_size=1 )
+  branch1 = conv_Block(prev_layer = branch1 , nbr_kernels = 288 , filter_size=3 , padding = 'same' )
+  branch1 = conv_Block(prev_layer = branch1 , nbr_kernels = 320 , filter_size=3 , stride = 2 )
+
+  branch2 = conv_Block(prev_layer = prev_layer , nbr_kernels = 256 , filter_size=1 )
+  branch2 = conv_Block(prev_layer = branch2 , nbr_kernels = 384 , filter_size=3 , stride = 2 )
+
+  branch3 = conv_Block(prev_layer = prev_layer , nbr_kernels = 256 , filter_size=1 )
+  branch3 = conv_Block(prev_layer = branch3 , nbr_kernels = 288 , filter_size=3 , stride = 2)
+
+  branch4 = MaxPool2D(pool_size = 3 , strides = 2)(prev_layer)
+
+  out = concatenate([branch1 , branch2 , branch3 , branch4] , axis = 3)
+  return out
+
+def InceptionV2():
+  input_layer = Input(shape=(299 , 299 , 3))
+
+  out = StemBlock(prev_layer=input_layer)
+  
+  out = InceptionBlock(prev_layer=out)
+  
+  out = InceptionResNet_A(prev_layer=out)
+  out = InceptionResNet_A(prev_layer=out)
+  out = InceptionResNet_A(prev_layer=out)
+  out = InceptionResNet_A(prev_layer=out)
+  out = InceptionResNet_A(prev_layer=out)
+  out = InceptionResNet_A(prev_layer=out)
+  out = InceptionResNet_A(prev_layer=out)
+  out = InceptionResNet_A(prev_layer=out)
+  out = InceptionResNet_A(prev_layer=out)
+  out = InceptionResNet_A(prev_layer=out)
+  
+  out = Reduction_A(prev_layer=out)
+  
+  out = InceptionResNet_B(prev_layer=out)
+  out = InceptionResNet_B(prev_layer=out)
+  out = InceptionResNet_B(prev_layer=out)
+  out = InceptionResNet_B(prev_layer=out)
+  out = InceptionResNet_B(prev_layer=out)
+  out = InceptionResNet_B(prev_layer=out)
+  out = InceptionResNet_B(prev_layer=out)
+  out = InceptionResNet_B(prev_layer=out)
+  out = InceptionResNet_B(prev_layer=out)
+  out = InceptionResNet_B(prev_layer=out)
+  out = InceptionResNet_B(prev_layer=out)
+  out = InceptionResNet_B(prev_layer=out)
+  out = InceptionResNet_B(prev_layer=out)
+  out = InceptionResNet_B(prev_layer=out)
+  out = InceptionResNet_B(prev_layer=out)
+  out = InceptionResNet_B(prev_layer=out)
+  out = InceptionResNet_B(prev_layer=out)
+  out = InceptionResNet_B(prev_layer=out)
+  out = InceptionResNet_B(prev_layer=out)
+  out = InceptionResNet_B(prev_layer=out)
+  
+  out = Reduction_B(prev_layer=out)
+  
+  out = InceptionResNet_C(prev_layer=out)
+  out = InceptionResNet_C(prev_layer=out)
+  out = InceptionResNet_C(prev_layer=out)
+  out = InceptionResNet_C(prev_layer=out)
+  out = InceptionResNet_C(prev_layer=out)
+  out = InceptionResNet_C(prev_layer=out)
+  out = InceptionResNet_C(prev_layer=out)
+  out = InceptionResNet_C(prev_layer=out)
+  out = InceptionResNet_C(prev_layer=out)
+  out = InceptionResNet_C(prev_layer=out)
+  
+  out = conv_Block(prev_layer= out , nbr_kernels=1536 , filter_size=1)
+  
+  out = conv_Block(prev_layer= out , nbr_kernels=1536 , filter_size=8)
+  
+  out = Flatten()(out)
+  
+  out = Dense(units = 1536 , activation='relu') (out)
+  out = Dense(units = 1000 ,activation='softmax') (out)
+
+  model = Model(inputs = input_layer , outputs = out , name = 'Inception-V2')
+  return model
 ```
 
 **pyTorch :**
