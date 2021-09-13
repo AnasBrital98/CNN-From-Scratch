@@ -2872,7 +2872,160 @@ def Xception():
 **pyTorch :**
 
 ```python
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torchsummary import summary
 
+class separableConv2D(nn.Module):
+  def __init__(self , in_channels , out_channels , kernel_Size , activation , padding = 0 ):
+    super(separableConv2D , self).__init__()
+    
+    self.depthwise = nn.Conv2d(in_channels= in_channels , out_channels = in_channels , kernel_size = kernel_Size , groups = in_channels ,stride = 1 , padding = padding )
+    self.pointwise = nn.Conv2d(in_channels= in_channels , out_channels = out_channels , kernel_size = 1 )
+    
+    self.batchNormalization = nn.BatchNorm2d(num_features = out_channels)
+    
+    self.activation = nn.ReLU()
+    self.act = activation
+  def forward(self,x):
+    out = self.depthwise(x)
+    out = self.pointwise(out)
+    out = self.batchNormalization(out)
+    if self.act :
+      out = self.activation(out)
+
+    return out
+
+class Conv_Block_A(nn.Module):
+  def __init__(self , in_channels ,nbr_kernels):
+    super(Conv_Block_A , self).__init__()
+    self.branch1 = nn.Conv2d(in_channels= in_channels , out_channels = nbr_kernels , kernel_size = 1 , stride=2)
+    
+    self.branch2 = nn.Sequential(
+        separableConv2D(in_channels = in_channels ,out_channels =  nbr_kernels , kernel_Size = 3  , activation = True) , 
+        separableConv2D(in_channels = nbr_kernels ,out_channels =  nbr_kernels , kernel_Size = 3  , activation = False),
+        nn.MaxPool2d(kernel_size=3 , stride = 2 , padding = 1)
+    )
+
+    self.activation = nn.ReLU()
+  
+  def forward(self , x):
+
+    branch1 = self.branch1(x)
+   
+    branch2 = self.activation(x)
+    branch2 = self.branch2(branch2)
+
+    out = torch.cat([branch1 , branch2 ], 1)
+    
+    return out
+
+class Conv_Block_B(nn.Module):
+  def __init__(self,in_channels):
+    super(Conv_Block_B , self).__init__()
+    self.branch1 = nn.Sequential(
+        separableConv2D(in_channels = in_channels ,out_channels =  728 , kernel_Size = 3  , activation = True) ,
+        separableConv2D(in_channels = 728 ,out_channels =  728 , kernel_Size = 3  , activation = True),
+        separableConv2D(in_channels = 728 ,out_channels =  728 , kernel_Size = 3  , activation = False) 
+    )
+    self.activation = nn.ReLU()
+
+  def forward(self , x):
+    branch1 = self.activation(x)
+    branch1 = self.branch1(branch1)
+
+    branch2 = x 
+
+    out = torch.cat([branch1 , branch2] , 1)
+    
+    return out
+
+class Conv_Block_C(nn.Module):
+  def __init__(self,in_channels):
+    super(Conv_Block_C , self).__init__()
+
+    self.branch1 = nn.Sequential(
+        separableConv2D(in_channels = in_channels ,out_channels =  728 , kernel_Size = 3  , activation = True) ,
+        separableConv2D(in_channels = 728 ,out_channels =  1024 , kernel_Size = 3  , activation = False) ,
+        nn.MaxPool2d(kernel_size=3 , stride = 2 , padding = 1)
+    )
+
+    self.branch2 = nn.Conv2d(in_channels=in_channels , out_channels = 1024 , kernel_size = 1 , stride = 2 )
+
+    self.sepconv1 = separableConv2D(in_channels = 2048 ,out_channels =  1536 , kernel_Size = 3  , activation = True)
+    self.sepconv1 = separableConv2D(in_channels = 1536 ,out_channels =  2048 , kernel_Size = 3  , activation = True)
+    self.activation = nn.ReLU()
+ 
+  def forward(self , x):
+   branch1 = self.activation(x)
+   branch1 = self.branch1(branch1)
+
+   branch2 = self.branch2(x)
+
+   out = torch.cat([branch1 , branch2] , 1)
+
+   out = self.sepconv1(out)
+   out = self.sepconv2(out)
+
+   return out
+
+class Xception(nn.Module):
+  def __init__(self):
+    super(Xception , self).__init__()
+
+    self.conv1 = nn.Conv2d(in_channels= 3 , out_channels=32 , kernel_size=3 , stride = 2)
+    self.conv2 = nn.Conv2d(in_channels= 32 , out_channels=64 , kernel_size=3)
+
+    self.convBlock_A_1 = Conv_Block_A(32 , 128)
+    self.convBlock_A_2 = Conv_Block_A(128 , 256)
+    self.convBlock_A_3 = Conv_Block_A(256 , 728)
+
+    self.convBlock_B_1   = Conv_Block_B(728)
+    self.convBlock_B_2   = Conv_Block_B(1536)
+
+    self.convBlock_C   = Conv_Block_B(1536)
+
+    self.fc1 = nn.Linear(in_features=2048 , out_features= 2048 )
+    self.fc2 = nn.Linear(in_features=2048 , out_features= 1000 )
+  
+  def forward(self , x):
+
+    out = self.conv1(x)
+    print('After Conv1 : ' , out.shape)
+    out = self.conv2(out)
+    print('After Conv2 : ' , out.shape)
+
+    out = self.convBlock_A_1(out)
+    print('After Block A_1 : ',out.shape)
+    out = self.convBlock_A_2(out)
+    print('After Block A_2 : ',out.shape)
+    out = self.convBlock_A_3(out)
+    print('After Block A_3 : ',out.shape)
+
+    out = self.convBlock_B_1(out)
+    out = self.convBlock_B_2(out)
+    out = self.convBlock_B_2(out)
+    out = self.convBlock_B_2(out)
+    out = self.convBlock_B_2(out)
+    out = self.convBlock_B_2(out)
+    out = self.convBlock_B_2(out)
+    out = self.convBlock_B_2(out)
+    print('After Block B : ',out.shape)
+    out = self.convBlock_C(out)
+    print('After Block C : ',out.shape)
+
+    out = self.fc1(out)
+    out = nn.ReLU()(out)
+
+    out = self.fc2(out)
+    out = nn.Softmax()(out)
+    
+    return out
+
+model = Xception()
+
+summary(model , (3 , 299 , 299))
 ```
 
 ### ResNet-50 :
