@@ -3141,7 +3141,81 @@ def ResNet50():
 **pyTorch :**
 
 ```python
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torchsummary import summary
 
+class convolution2D(nn.Module):
+  def __init__(self , in_channels , out_channels , kernel_size , stride , padding , activation):
+    super(convolution2D , self).__init__()
+    self.conv = nn.Conv2d(in_channels , out_channels , kernel_size , stride , padding)
+    self.batchNornalization = nn.BatchNorm2d(num_features=out_channels)
+    self.activation = nn.ReLU()
+    self.act = activation
+  
+  def forward(self , x):
+    out = self.conv(x)
+    out = self.batchNornalization(out)
+    if self.act :
+      out = self.activation(out)
+    return out    
+
+class conv_Block(nn.Module):
+  def __init__(self , in_channels , filters , stride):
+    super(conv_Block , self).__init__()
+    f1 , f2 , f3 = filters
+
+    self.branch1 = nn.Sequential(
+        convolution2D(in_channels , f1 , 1 , stride , 0 , True),
+        convolution2D(f1 , f2 , 3 , 1 , 1, True),
+        convolution2D(f2 , f3 , 1 , 1 , 0, False)
+    )
+
+    self.branch2 = convolution2D(in_channels , f3 , 1 , stride , 0, False)
+    
+    self.activation = nn.ReLU()
+  
+  def forward(self , x):
+
+    branch1 = self.branch1(x)
+
+    branch2 = self.branch2(x)  
+
+    out = torch.cat([branch1 , branch2] , 1)
+    
+    return self.activation(out)
+
+class identity_Block(nn.Module):
+  def __init__(self , in_channels , filters ):
+    super(identity_Block , self).__init__()
+
+    f1 , f2 , f3 = filters
+    self.branch1 = nn.Sequential(
+        convolution2D(in_channels , f1 , 1 , 1 , 0 , True),
+        convolution2D(f1 , f2 , 3 , 1 , 1, True),
+        convolution2D(f2 , f3 , 1 , 1 , 0, False)
+    )
+
+    self.activation = nn.ReLU()
+ 
+ def forward(self , x):
+
+   branch1 = self.branch1(x)
+
+   branch2 = x
+
+   out = torch.cat([branch1 , branch2] , 1)
+
+   return self.activation(out)
+
+class ResNet_50(nn.Module):
+  def __init__(self):
+    super(ResNet_50 , self).__init__()
+    pass
+
+
+#### Not Complited
 ```
 
 ### ResNext-50 :
