@@ -70,6 +70,7 @@ def VGG19():
 ```python
 import torch.nn as nn
 import torch.nn.functional as F
+from torchsummary import summary
 
 class VGG19(nn.Module):
   def __init__(self):
@@ -96,28 +97,32 @@ class VGG19(nn.Module):
     x = F.relu(x)
     x = self.conv2(x)
     x = F.relu(x)
-
+    
     #Max Pooling Layer with kernel size 2*2 and stride 2
     x = self.maxPool(x)
-
+    
     # 2 Conv Layers with 128 kernels of size 3*3
     x = self.conv3(x)
     x = F.relu(x)
     x = self.conv4(x)
     x = F.relu(x)
-
+    
     #Max Pooling Layer with kernel size 2*2 and stride 2
     x = self.maxPool(x)
-
+    
     # 2 Conv Layers with 256 kernels of size 3*3
     x = self.conv5(x)
     x = F.relu(x)
+    x = self.conv5(x)
+    x = F.relu(x)
+    x = self.conv5(x)
+    x = F.relu(x)    
     x = self.conv6(x)
     x = F.relu(x)
-
+    
     #Max Pooling Layer with kernel size 2*2 and stride 2
     x = self.maxPool(x)
-
+    
     # 4 Conv Layers with 512 kernels of size 3*3
     x = self.conv7(x)
     x = F.relu(x)
@@ -127,10 +132,10 @@ class VGG19(nn.Module):
     x = F.relu(x)
     x = self.conv7(x)
     x = F.relu(x)
-
+    
     #Max Pooling Layer with kernel size 2*2 and stride 2
     x = self.maxPool(x)
-
+    
     # 4 Conv Layers with 512 kernels of size 3*3
     x = self.conv7(x)
     x = F.relu(x)
@@ -140,7 +145,7 @@ class VGG19(nn.Module):
     x = F.relu(x)
     x = self.conv7(x)
     x = F.relu(x)
-
+    
     #Max Pooling Layer with kernel size 2*2 and stride 2
     x = self.maxPool(x)
 
