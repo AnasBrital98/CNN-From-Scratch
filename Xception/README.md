@@ -7,8 +7,24 @@
 **Published in :** 2017 IEEE Conference on Computer Vision and Pattern Recognition (CVPR).
 
 **Model Architecture :** 
+
 <div align="center" >
-<img src="../resources/Xception.PNG" width="100" height="300">
+<img src="../resources/Architectures/Xception/XceptionModel.svg" width="600px" height="300px">
+</div>
+
+<b>Conv-A Block : </b>
+<div align="center" >
+<img src="../resources/Architectures/Xception/ConvA.svg" width="600px" height="300px">
+</div>
+
+<b>Conv-B Block : </b>
+<div align="center" >
+<img src="../resources/Architectures/Xception/ConvB.svg" width="600px" height="300px">
+</div>
+
+<b>Conv-C Block : </b>
+<div align="center" >
+<img src="../resources/Architectures/Xception/ConvC.svg" width="600px" height="300px">
 </div>
 
 **keras :**

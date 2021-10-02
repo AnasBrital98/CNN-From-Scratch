@@ -7,7 +7,7 @@
 **Published in:** Proceedings of the IEEE 1998 . 
 
 <div align="center" >
-<img src="../resources/LeNet5.png" width="400" height="250">
+<img src="../resources/Architectures/LeNet5/LeNet-5-Architecture.svg" width="800px" height="300px">
 </div>
 
 let Apply our Formulas and see how an input Image with 32 * 32 * 1 size become a Vector with 100 length .

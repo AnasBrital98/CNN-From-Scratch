@@ -9,8 +9,19 @@
 **Model Architecture :** 
 ResNext Architecture it an improvement to ResNet Architecture , The Difference Between Them is in The Figure bellow  .
 
+**Model Architecture :** 
 <div align="center" >
-<img src="../resources/ResNetVsResNext.png" width="500" height="500">
+<img src="../resources/Architectures/ResNext50/ResNeXt50.svg" width="600px" height="300px">
+</div>
+
+<b>Conv Block : </b>
+<div align="center" >
+<img src="../resources/Architectures/ResNext50/ConvBlock.svg" width="600px" height="300px">
+</div>
+
+<b>Identity Block : </b>
+<div align="center" >
+<img src="../resources/Architectures/ResNext50/IdentityBlock.svg" width="600px" height="300px">
 </div>
 
 

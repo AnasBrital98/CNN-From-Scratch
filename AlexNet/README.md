@@ -9,7 +9,7 @@
 **Model Architecture :** 
 
 <div align="center" >
-<img src="../resources/AlexNetArchitecture.PNG" width="200" height="500">
+<img src="../resources/Architectures/AlexNet/AlexNet-Architecture.svg" width="800px" height="300px">
 </div>
 
 **keras :**

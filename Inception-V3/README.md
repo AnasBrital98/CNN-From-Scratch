@@ -7,8 +7,38 @@
 **Published in :** 2016 IEEE Conference on Computer Vision and Pattern Recognition (CVPR) .
 
 **Model Architecture :** 
+
 <div align="center" >
-<img src="../resources/InceptionV3.PNG" width="200" height="700">
+<img src="../resources/Architectures/InceptionV3/InceptionV3.svg" width="600px" height="300px">
+</div>
+
+<b>Stem Block : </b>
+<div align="center" >
+<img src="../resources/Architectures/InceptionV3/Stem.svg" width="600px" height="300px">
+</div>
+<b>Inception-A Block : </b>
+<div align="center" >
+<img src="../resources/Architectures/InceptionV3/InceptionA.svg" width="600px" height="300px">
+</div>
+<b>Inception-B Block : </b>
+<div align="center" >
+<img src="../resources/Architectures/InceptionV3/InceptionB.svg" width="600px" height="300px">
+</div>
+<b>Inception-C Block : </b>
+<div align="center" >
+<img src="../resources/Architectures/InceptionV3/InceptionC.svg" width="600px" height="300px">
+</div>
+<b>Reduction-A Block : </b>
+<div align="center" >
+<img src="../resources/Architectures/InceptionV3/ReductionA.svg" width="600px" height="300px">
+</div>
+<b>Reduction-B Block : </b>
+<div align="center" >
+<img src="../resources/Architectures/InceptionV3/ReductionB.svg" width="600px" height="300px">
+</div>
+<b>Auxiliary Classifier Block : </b>
+<div align="center" >
+<img src="../resources/Architectures/InceptionV3/auxiliary_classifier.svg" width="600px" height="300px">
 </div>
 
 **keras :**

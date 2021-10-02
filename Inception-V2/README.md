@@ -6,6 +6,41 @@ Authors : Christian Szegedy, Sergey Ioffe, Vincent Vanhoucke, Alex Alemi , Googl
 
 **Published in :** Proceedings of the Thirty-First AAAI Conference on Artificial Intelligence .
 
+**Model Architecture :** 
+
+<div align="center" >
+<img src="../resources/Architectures/InceptionV2/InceptionV2.svg" width="600px" height="300px">
+</div>
+
+<b>Stem Block : </b>
+<div align="center" >
+<img src="../resources/Architectures/InceptionV2/StemBlock.svg" width="600px" height="300px">
+</div>
+<b>Inception A Block : </b>
+<div align="center" >
+<img src="../resources/Architectures/InceptionV2/InceptionA.svg" width="600px" height="300px">
+</div>
+<b>Inception-ResNet-A Block : </b>
+<div align="center" >
+<img src="../resources/Architectures/InceptionV2/Inception-ResNet-A.svg" width="600px" height="300px">
+</div>
+<b>Inception-ResNet-B Block : </b>
+<div align="center" >
+<img src="../resources/Architectures/InceptionV2/Inception-ResNet-B.svg" width="600px" height="300px">
+</div>
+<b>Inception-ResNet-c Block : </b>
+<div align="center" >
+<img src="../resources/Architectures/InceptionV2/Inception-ResNet-C.svg" width="600px" height="300px">
+</div>
+<b>Reduction-A Block : </b>
+<div align="center" >
+<img src="../resources/Architectures/InceptionV2/ReductionA.svg" width="600px" height="300px">
+</div>
+<b>Reduction-B Block : </b>
+<div align="center" >
+<img src="../resources/Architectures/InceptionV2/ReductionB.svg" width="600px" height="300px">
+</div>
+
 **keras :**
 
 ```python

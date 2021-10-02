@@ -9,7 +9,7 @@
 **Model Architecture :** 
 
 <div align="center" >
-<img src="../resources/VGG16.PNG" width="100" height="400">
+<img src="../resources/Architectures/VGG16/VGG-16-Architecture.svg" width="700px" height="300px">
 </div>
 
 **keras :**
